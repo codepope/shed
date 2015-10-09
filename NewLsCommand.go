@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/coreos/etcd/client"
 	"github.com/ryanuber/go-glob"
-
 	"golang.org/x/net/context"
 )
 
@@ -30,11 +30,17 @@ func lsCommand(r *ReplYell) {
 	if len(r.Args) == 1 {
 		argkey := r.Args[0]
 
+		if !strings.HasPrefix(key, "/") {
+			//Not absolute, add the present working directory
+			argkey = shellState.pwd + argkey
+		}
+
 		// Is there a wildcard?
 		if strings.Contains(argkey, "*") {
 			// Find the last slash
 			lastslash := strings.LastIndex(argkey, "/")
-			if lastslash != -1 {
+
+			if lastslash > 0 {
 				// Split the string on it for the key
 				key = argkey[0:lastslash]
 				matcher = argkey
@@ -44,15 +50,16 @@ func lsCommand(r *ReplYell) {
 				matcher = shellState.pwd + argkey
 			}
 		} else {
-			// No wild card. Is it absolute?
-			if !strings.HasPrefix(key, "/") {
-				//Not absolute, add the present working directory
-				key = shellState.pwd + key
-			}
+			key = argkey
 		}
 	} else {
 		// No argument, so set the key to the present working dir
 		key = shellState.pwd
+	}
+
+	if debug {
+		fmt.Println("Key:" + key)
+		fmt.Println("Matcher:" + matcher)
 	}
 
 	resp, err := shellState.kapi.Get(context.TODO(), key, nil)
@@ -65,13 +72,20 @@ func lsCommand(r *ReplYell) {
 	if resp.Node.Dir {
 		for _, node := range resp.Node.Nodes {
 			if matcher == "" {
-				fmt.Println(node.Key)
+				printNode(node)
 			} else if glob.Glob(matcher, node.Key) {
-				fmt.Println(node.Key)
+				printNode(node)
 			}
 		}
 	} else {
 		fmt.Println("Not a directory")
 	}
+}
 
+func printNode(node *client.Node) {
+	if node.Dir {
+		fmt.Println(node.Key + "/")
+	} else {
+		fmt.Println(node.Key)
+	}
 }
