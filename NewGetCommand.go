@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"path"
 
 	"golang.org/x/net/context"
 )
@@ -21,27 +21,31 @@ func NewGetCommand() ReplCommand {
 
 func getCommand(r *ReplYell) {
 	shellState := getShellState()
+	key := ""
 
-	if len(r.Args) <= 1 {
-		var key string
-		if len(r.Args) == 1 {
-			key = r.Args[0]
-		} else {
-			key = ""
-			fmt.Println("No key set: Getting pwd " + shellState.pwd)
-		}
-
-		if !strings.HasPrefix(key, "/") {
-			key = shellState.pwd + key
-		}
-
-		resp, err := shellState.kapi.Get(context.TODO(), key, nil)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		printResponseKey(resp)
-	} else if len(r.Args) > 1 {
+	switch len(r.Args) {
+	case 1:
+		key = r.Args[0]
+	case 0:
+		key = ""
+		fmt.Println("No key set: Getting pwd " + shellState.pwd)
+	default:
 		fmt.Println("Need one key - multiple key retrieval TODO")
+		return
 	}
+
+	if !path.IsAbs(key) {
+		key = path.Join(shellState.pwd, key)
+	} else {
+		key = path.Clean(key)
+	}
+
+	resp, err := shellState.kapi.Get(context.TODO(), key, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	printResponseKey(resp)
+
 }

@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/coreos/etcd/client"
-	"github.com/ryanuber/go-glob"
 	"golang.org/x/net/context"
 )
 
@@ -24,45 +24,35 @@ func NewLsCommand() ReplCommand {
 func lsCommand(r *ReplYell) {
 	shellState := getShellState()
 
-	key := ""
+	dir := ""
 	matcher := ""
 
-	if len(r.Args) == 1 {
-		argkey := r.Args[0]
+	switch len(r.Args) {
 
-		if !strings.HasPrefix(key, "/") {
-			//Not absolute, add the present working directory
-			argkey = shellState.pwd + argkey
-		}
+	case 0:
+		dir = shellState.pwd
+		matcher = path.Join(dir, "*")
+	case 1:
+		if len(r.Args) == 1 {
+			argkey := r.Args[0]
 
-		// Is there a wildcard?
-		if strings.Contains(argkey, "*") {
-			// Find the last slash
-			lastslash := strings.LastIndex(argkey, "/")
-
-			if lastslash > 0 {
-				// Split the string on it for the key
-				key = argkey[0:lastslash]
-				matcher = argkey
+			if !path.IsAbs(argkey) {
+				argkey = path.Join(shellState.pwd, argkey)
 			} else {
-				// Use the present working directory for the key
-				key = shellState.pwd
-				matcher = shellState.pwd + argkey
+				argkey = path.Clean(argkey)
 			}
-		} else {
-			key = argkey
+
+			dir, _ = path.Split(argkey)
+			matcher = argkey
 		}
-	} else {
-		// No argument, so set the key to the present working dir
-		key = shellState.pwd
 	}
 
 	if debug {
-		fmt.Println("Key:" + key)
+		fmt.Println("Key:" + dir)
 		fmt.Println("Matcher:" + matcher)
 	}
 
-	resp, err := shellState.kapi.Get(context.TODO(), key, nil)
+	resp, err := shellState.kapi.Get(context.TODO(), dir, nil)
 
 	if err != nil {
 		fmt.Println(err)
@@ -72,9 +62,17 @@ func lsCommand(r *ReplYell) {
 	if resp.Node.Dir {
 		for _, node := range resp.Node.Nodes {
 			if matcher == "" {
-				printNode(node)
-			} else if glob.Glob(matcher, node.Key) {
-				printNode(node)
+				printNode(shellState, node)
+			} else {
+				match, err := path.Match(matcher, node.Key)
+				if err != nil {
+					fmt.Println(err)
+					return // A swift exit
+				}
+				if match {
+					printNode(shellState, node)
+				}
+
 			}
 		}
 	} else {
@@ -82,10 +80,11 @@ func lsCommand(r *ReplYell) {
 	}
 }
 
-func printNode(node *client.Node) {
+func printNode(shellState *ShellState, node *client.Node) {
+	nodename := strings.TrimPrefix(node.Key, shellState.pwd)
 	if node.Dir {
-		fmt.Println(node.Key + "/")
+		fmt.Println(nodename + "/")
 	} else {
-		fmt.Println(node.Key)
+		fmt.Println(nodename)
 	}
 }

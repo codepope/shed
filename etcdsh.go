@@ -43,6 +43,7 @@ func replCommand(cliContext *cli.Context) {
 		NewPwdCommand(),
 		NewEnvCommand(),
 		NewLsCommand(),
+		NewCdCommand(),
 	}
 
 	shellState := getShellState()

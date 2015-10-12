@@ -31,7 +31,11 @@ func setCommand(r *ReplYell) {
 	value := r.Args[1]
 
 	if !strings.HasPrefix(key, "/") {
-		key = shellState.pwd + key
+		if shellState.pwd != "/" {
+			key = shellState.pwd + key
+		} else {
+			key = shellState.pwd + "/" + key
+		}
 		fmt.Println("Setting " + key)
 	}
 
