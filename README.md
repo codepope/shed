@@ -47,7 +47,7 @@ get _path_
 
 Set an internal env variable
 
-e[nv] p[rint] s[imple] - Print values of keys only
-e[nv] p[rint] j[son] - Print the result as json
-e[nv] p[rint] p[retty] - Print the result as formatted json
+* e[nv] s[imple] - Print values of keys only
+* e[nv] j[son] - Print the result as json
+* e[nv] p[retty] - Print the result as formatted json
 
