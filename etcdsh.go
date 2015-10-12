@@ -21,6 +21,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "etcdsh"
 	app.Usage = "Shell into etcd"
+	app.Version = "0.0.1"
 	app.Action = func(c *cli.Context) {
 		replCommand(c)
 	}

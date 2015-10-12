@@ -14,7 +14,9 @@ func NewLsCommand() ReplCommand {
 	return ReplCommand{
 		Name:  "ls",
 		Usage: "list directory",
-		Flags: []ReplFlag{},
+		Flags: []ReplFlag{
+			ReplFlag{Name: "recur", ShortName: "r", IsBool: true},
+		},
 		Action: func(r *ReplYell) {
 			lsCommand(r)
 		},
@@ -52,7 +54,9 @@ func lsCommand(r *ReplYell) {
 		fmt.Println("Matcher:" + matcher)
 	}
 
-	resp, err := shellState.kapi.Get(context.TODO(), dir, nil)
+	options := &client.GetOptions{Recursive: replFlagIsSet(r, "recur")}
+
+	resp, err := shellState.kapi.Get(context.TODO(), dir, options)
 
 	if err != nil {
 		fmt.Println(err)
@@ -81,9 +85,12 @@ func lsCommand(r *ReplYell) {
 }
 
 func printNode(shellState *ShellState, node *client.Node) {
-	nodename := strings.TrimPrefix(node.Key, shellState.pwd)
+	nodename := strings.TrimPrefix(node.Key, shellState.pwd+"/")
 	if node.Dir {
 		fmt.Println(nodename + "/")
+		for _, subnode := range node.Nodes {
+			printNode(shellState, subnode)
+		}
 	} else {
 		fmt.Println(nodename)
 	}

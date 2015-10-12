@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/mattn/go-shellwords"
 )
@@ -51,6 +52,7 @@ func makeReplCommand(commands []ReplCommand, line string) (cmd *ReplYell, err er
 	}
 
 	args, err := parser.Parse(line)
+
 	if len(args) != 0 {
 		command := args[0]
 		args = args[1:]
@@ -60,12 +62,47 @@ func makeReplCommand(commands []ReplCommand, line string) (cmd *ReplYell, err er
 				// We have our command
 				replYell := ReplYell{Command: cmd, Line: line}
 
+				parsedargs := []string{}
+
+				for i := 0; i < len(args); i++ {
+					// Check the flags
+					arg := args[i]
+					foundflag := false
+
+					for _, flag := range cmd.Flags {
+						if arg == "--"+flag.Name || arg == "-"+flag.ShortName {
+							foundflag = true
+							var newflagvalue ReplFlagValue
+
+							// This is our flag!
+							if flag.IsBool {
+								newflagvalue = ReplFlagValue{Flag: flag, BoolVal: true}
+							} else {
+								// If string flag, get next arg
+								i++
+								if i < len(args) {
+									argvalue := args[i]
+									newflagvalue = ReplFlagValue{Flag: flag, StringVal: argvalue}
+								} else {
+									return nil, errors.New(arg + " need value")
+								}
+							}
+							replYell.Flags = append(replYell.Flags, newflagvalue)
+						}
+					}
+					if !foundflag {
+						if strings.HasPrefix(arg, "-") {
+							return nil, errors.New(arg + " unknown flag")
+						}
+						parsedargs = append(parsedargs, arg)
+					}
+				}
 				// Now we parse for flags...
 				//for _, arg := range args {
 				// Do nothing for now... TODO!
 				//}
 
-				replYell.Args = args
+				replYell.Args = parsedargs
 				return &replYell, nil
 				//cmd.Action(args, cliContext)
 			}
@@ -74,4 +111,15 @@ func makeReplCommand(commands []ReplCommand, line string) (cmd *ReplYell, err er
 	}
 
 	return nil, nil
+}
+
+func replFlagIsSet(cmd *ReplYell, flagname string) bool {
+	for _, flagvalue := range cmd.Flags {
+		if flagvalue.Flag.Name == flagname {
+			if flagvalue.Flag.IsBool {
+				return flagvalue.BoolVal
+			}
+		}
+	}
+	return false
 }
