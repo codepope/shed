@@ -49,7 +49,7 @@ func lsCommand(r *ReplYell) {
 		}
 	}
 
-	if debug {
+	if *debug {
 		fmt.Println("Key:" + dir)
 		fmt.Println("Matcher:" + matcher)
 	}
