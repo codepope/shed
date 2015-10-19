@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/mattn/go-shellwords"
@@ -20,6 +21,7 @@ type ReplFlag struct {
 	Name      string
 	ShortName string
 	IsBool    bool
+	IsInt     bool
 }
 
 // ReplFlagValue holds a parsed ReplFlag
@@ -27,6 +29,7 @@ type ReplFlagValue struct {
 	Flag      ReplFlag
 	StringVal string
 	BoolVal   bool
+	IntVal    int
 }
 
 // ReplYell holds the completely parsed command
@@ -78,11 +81,16 @@ func makeReplCommand(commands []ReplCommand, line string) (cmd *ReplYell, err er
 							if flag.IsBool {
 								newflagvalue = ReplFlagValue{Flag: flag, BoolVal: true}
 							} else {
-								// If string flag, get next arg
+								// If parametered flag, get next arg
 								i++
 								if i < len(args) {
 									argvalue := args[i]
-									newflagvalue = ReplFlagValue{Flag: flag, StringVal: argvalue}
+									if flag.IsInt {
+										newflagvalue = ReplFlagValue{Flag: flag, StringVal: argvalue}
+									} else {
+										val, _ := strconv.Atoi(argvalue)
+										newflagvalue = ReplFlagValue{Flag: flag, IntVal: val}
+									}
 								} else {
 									return nil, errors.New(arg + " need value")
 								}
@@ -123,3 +131,5 @@ func replFlagIsSet(cmd *ReplYell, flagname string) bool {
 	}
 	return false
 }
+
+func replFlagIsInt(cmd *ReplYell, flagname string) int,
