@@ -12,7 +12,9 @@ func NewSetCommand() ReplCommand {
 	return ReplCommand{
 		Name:  "set",
 		Usage: "set key value",
-		Flags: []ReplFlag{},
+		Flags: []ReplFlag{
+			ReplFlag{"ttl", "t", false, true},
+		},
 		Action: func(r *ReplYell) {
 			setCommand(r)
 		},
