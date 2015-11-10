@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	app      = kingpin.New("etcdsh", "An etcd shell")
+	app      = kingpin.New("shed", "A SHell for EtcD")
 	peerlist = app.Flag("peers", "etcd peers").Short('C').Default("http://127.0.0.1:4001,http://127.0.0.1:2379").OverrideDefaultFromEnvar("EX_PEERS").String()
 	userpass = app.Flag("user", "etcd User").Short('u').OverrideDefaultFromEnvar("EX_USER").String()
 	password = app.Flag("pass", "etcd Password").Short('p').OverrideDefaultFromEnvar("EX_PASS").String()
@@ -78,7 +78,7 @@ func initTerm() {
 	go func() {
 		<-c
 		closeTerm()
-		fmt.Println("Exiting etcdsh")
+		fmt.Println("Exiting shed")
 		os.Exit(1)
 	}()
 }

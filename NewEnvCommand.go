@@ -6,7 +6,7 @@ import "fmt"
 func NewEnvCommand() ReplCommand {
 	return ReplCommand{
 		Name:  "env",
-		Usage: "change an etcdsh setting",
+		Usage: "change an shed setting",
 		Flags: []ReplFlag{},
 		Action: func(r *ReplYell) {
 			envCommand(r)

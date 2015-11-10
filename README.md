@@ -1,5 +1,5 @@
-# etcdsh
-A shell for etcd
+# shed
+A SHell for EtcD
 
 This is a shell for interacting with the hierarchy of keys and values withing an etcd cluster by navigating it as if it were a filesystem.
 
@@ -25,7 +25,7 @@ List content of directory
 
 ls - list contents of pwd
 ls _wildcard_ - list contents of pwd that match the wildcard
-ls _path_ - list contents of path 
+ls _path_ - list contents of path
 ls _path_/_wildcard_ - list contents of path that match the wildcard
 (wild card paths not currently implemented)
 
@@ -50,4 +50,3 @@ Set an internal env variable
 * e[nv] s[imple] - Print values of keys only
 * e[nv] j[son] - Print the result as json
 * e[nv] p[retty] - Print the result as formatted json
-

@@ -131,5 +131,3 @@ func replFlagIsSet(cmd *ReplYell, flagname string) bool {
 	}
 	return false
 }
-
-func replFlagIsInt(cmd *ReplYell, flagname string) int,
