@@ -105,14 +105,9 @@ func makeReplCommand(commands []ReplCommand, line string) (cmd *ReplYell, err er
 						parsedargs = append(parsedargs, arg)
 					}
 				}
-				// Now we parse for flags...
-				//for _, arg := range args {
-				// Do nothing for now... TODO!
-				//}
 
 				replYell.Args = parsedargs
 				return &replYell, nil
-				//cmd.Action(args, cliContext)
 			}
 		}
 		return nil, errors.New(command + " not found")
